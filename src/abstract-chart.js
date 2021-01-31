@@ -157,7 +157,8 @@ class AbstractChart extends Component {
     const {
       xAxisLabel = "",
       xLabelsOffset = 0,
-      hideLabelsAtIndex = []
+      hideLabelsAtIndex = [],
+      showLabelAtIndexes
     } = this.props;
     const fontSize = 12;
     let fac = 1;
@@ -165,7 +166,7 @@ class AbstractChart extends Component {
       fac = 0.71;
     }
 
-    const labelWidth = (width - horizontalLabelWidth - paddingRight - paddingLeft) / labels.length;
+    const labelWidth = (width - horizontalLabelWidth - paddingRight - paddingLeft) / (labels.length - 1);
 
     const y = height - paddingBottom - verticalLabelHeight + xLabelsOffset + fontSize*1.5;
 
@@ -174,6 +175,10 @@ class AbstractChart extends Component {
         return null;
       }
 
+      if (showLabelAtIndexes && !showLabelAtIndexes.includes(i)) {
+        return null
+      }
+      
       const x = (paddingLeft + horizontalLabelWidth + labelWidth * i + midPoint + horizontalOffset) * fac;
 
       return (
@@ -205,7 +210,7 @@ class AbstractChart extends Component {
 
     const lineNum = innerLines || data.length;
 
-    const gap = innerWidth / (lineNum / yAxisInterval);
+    const gap = innerWidth / ((lineNum - 1) / yAxisInterval);
 
     return [...new Array(Math.ceil(lineNum / yAxisInterval))].map(
       (_, i) => {

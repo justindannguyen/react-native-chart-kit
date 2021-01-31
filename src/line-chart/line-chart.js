@@ -334,6 +334,8 @@ class LineChart extends AbstractChart {
     const { datas, innerHeight, innerWidth, baseHeight } = this.linePositionHelper(config);
 
     return config.data.map((dataset, index) => {
+      const gapWidth = innerWidth / (dataset.data.length - 1);
+      const haftGapWidth = 0
       return (
         <Polygon
           key={index}
@@ -341,14 +343,13 @@ class LineChart extends AbstractChart {
             dataset.data
               .map((d, i) => {
                 const lineHeight = this.calcHeight(d, datas, innerHeight);
-                const gapWidth = innerWidth / dataset.data.length;
-                const x = paddingLeft + horizontalLabelWidth + i * gapWidth;
+                const x = paddingLeft + horizontalLabelWidth + i * gapWidth + haftGapWidth ;
                 const y = baseHeight - lineHeight + gutterTop + paddingTop;
                 return `${x},${y}`;
               })
               .join(" ") +
-            ` ${paddingLeft + horizontalLabelWidth + (innerWidth / dataset.data.length) * (dataset.data.length - 1)},
-              ${paddingTop + gutterTop + innerHeight} ${paddingLeft + horizontalLabelWidth},
+            ` ${paddingLeft + horizontalLabelWidth + gapWidth * (dataset.data.length - 1) + haftGapWidth},
+              ${paddingTop + gutterTop + innerHeight} ${paddingLeft + horizontalLabelWidth + haftGapWidth},
               ${paddingTop + gutterTop + innerHeight}`
           }
           fill={`url(#fillShadowGradient${
@@ -381,10 +382,11 @@ class LineChart extends AbstractChart {
     const { datas, innerHeight, innerWidth, baseHeight } = this.linePositionHelper(config);
     let lastPoint;
     data.forEach((dataset, index) => {
+      const gapWidth = innerWidth / (dataset.data.length - 1);
+      const haftGapWidth = 0
       const points = dataset.data.map((d, i) => {
         const lineHeight = this.calcHeight(d, datas, innerHeight);
-        const gapWidth = innerWidth / dataset.data.length;
-        const x = i * gapWidth + horizontalLabelWidth + paddingLeft;
+        const x = i * gapWidth + horizontalLabelWidth + paddingLeft + haftGapWidth;
         const y = baseHeight - lineHeight + gutterTop + paddingTop;
         lastPoint = `${x},${y}`;
         return `${x},${y}`;
@@ -515,6 +517,7 @@ class LineChart extends AbstractChart {
       withShadow = true,
       withDots = true,
       withInnerLines = true,
+      withVerticalLines = true,
       withOuterLines = true,
       withHorizontalLabels = true,
       withVerticalLabels = true,
@@ -616,7 +619,7 @@ class LineChart extends AbstractChart {
                 : null}
             </G>
             <G>
-              {withInnerLines
+              {withInnerLines && withVerticalLines
                 ? this.renderVerticalLines({
                     ...config,
                     data: data.datasets[0].data,
