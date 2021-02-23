@@ -19,7 +19,7 @@ import AbstractChart from "../abstract-chart";
 import { LegendItem } from "./legend-item";
 
 const GRAPH_RATIO = {
-  gutterTop: 0.1 ,
+  gutterTop: 0.1,
   horizontalLabelWidth: 0.2,
   verticalLabelHeight: 0.15,
 }
@@ -33,7 +33,7 @@ class LineChart extends AbstractChart {
     scrollableDotHorizontalOffset: new Animated.Value(0)
   };
 
-  getColor = (dataset={}, opacity) => {
+  getColor = (dataset = {}, opacity) => {
     return (dataset.color || this.props.chartConfig.color)(opacity);
   };
 
@@ -89,6 +89,8 @@ class LineChart extends AbstractChart {
     const {
       getDotColor,
       hidePointsAtIndex = [],
+      withDotContents,
+      withDots,
       renderDotContent = () => {
         return null;
       }
@@ -98,51 +100,52 @@ class LineChart extends AbstractChart {
       if (dataset.withDots == false) return;
 
       dataset.data.forEach((x, i) => {
-        if (hidePointsAtIndex.includes(i)) {
-          return;
-        }
         const lineHeight = this.calcHeight(x, datas, innerHeight);
-        const gapWidth = innerWidth / dataset.data.length;
+        const gapWidth = innerWidth / (dataset.data.length - 1);
         const cx = i * gapWidth + horizontalLabelWidth + paddingLeft;
         const cy = baseHeight - lineHeight + gutterTop + paddingTop;
-        const onPress = () => {
-          if (!onDataPointClick || hidePointsAtIndex.includes(i)) {
-            return;
-          }
-
-          onDataPointClick({
-            index: i,
-            value: x,
-            dataset,
-            x: cx,
-            y: cy,
-            getColor: opacity => this.getColor(dataset, opacity)
-          });
-        };
-        output.push(
-          <Circle
-            key={Math.random()}
-            cx={cx}
-            cy={cy}
-            fill={
-              typeof getDotColor === "function"
-                ? getDotColor(x, i)
-                : this.getColor(dataset, 0.9)
+        if (withDots) {
+          const onPress = () => {
+            if (!onDataPointClick || hidePointsAtIndex.includes(i)) {
+              return;
             }
-            onPress={onPress}
-            {...this.getPropsForDots(x, i)}
-          />,
-          <Circle
-            key={Math.random()}
-            cx={cx}
-            cy={cy}
-            r="14"
-            fill="#fff"
-            fillOpacity={0}
-            onPress={onPress}
-          />,
-          renderDotContent({ x: cx, y: cy, index: i })
-        );
+
+            onDataPointClick({
+              index: i,
+              value: x,
+              dataset,
+              x: cx,
+              y: cy,
+              getColor: opacity => this.getColor(dataset, opacity)
+            });
+          };
+          output.push(
+            <Circle
+              key={Math.random()}
+              cx={cx}
+              cy={cy}
+              fill={
+                typeof getDotColor === "function"
+                  ? getDotColor(x, i)
+                  : this.getColor(dataset, 0.9)
+              }
+              onPress={onPress}
+              {...this.getPropsForDots(x, i)}
+            />,
+            <Circle
+              key={Math.random()}
+              cx={cx}
+              cy={cy}
+              r="14"
+              fill="#fff"
+              fillOpacity={0}
+              onPress={onPress}
+            />
+          )
+        }
+        if (withDotContents) {
+          output.push(renderDotContent({ x: cx, y: cy, index: i, segmentWidth: gapWidth }))
+        }
       });
     });
     return output;
@@ -161,7 +164,7 @@ class LineChart extends AbstractChart {
       scrollableDotRadius,
       scrollableInfoViewStyle = {},
       scrollableInfoTextStyle = {},
-      scrollableInfoSize = {height:20, width:20},
+      scrollableInfoSize = { height: 20, width: 20 },
       scrollableInfoOffset = 10,
       verticalLabelHeight,
       horizontalLabelWidth,
@@ -343,7 +346,7 @@ class LineChart extends AbstractChart {
             dataset.data
               .map((d, i) => {
                 const lineHeight = this.calcHeight(d, datas, innerHeight);
-                const x = paddingLeft + horizontalLabelWidth + i * gapWidth + haftGapWidth ;
+                const x = paddingLeft + horizontalLabelWidth + i * gapWidth + haftGapWidth;
                 const y = baseHeight - lineHeight + gutterTop + paddingTop;
                 return `${x},${y}`;
               })
@@ -352,9 +355,8 @@ class LineChart extends AbstractChart {
               ${paddingTop + gutterTop + innerHeight} ${paddingLeft + horizontalLabelWidth + haftGapWidth},
               ${paddingTop + gutterTop + innerHeight}`
           }
-          fill={`url(#fillShadowGradient${
-            useColorFromDataset ? `_${index}` : ""
-          })`}
+          fill={`url(#fillShadowGradient${useColorFromDataset ? `_${index}` : ""
+            })`}
           strokeWidth={0}
         />
       );
@@ -397,7 +399,7 @@ class LineChart extends AbstractChart {
           strokeLinejoin={linejoinType}
           points={points.join(" ")}
           fill="none"
-          stroke={this.getColor(dataset, 0.2)}
+          stroke={this.getColor(dataset, 1)}
           strokeWidth={this.getStrokeWidth(dataset)}
         />
       );
@@ -474,16 +476,15 @@ class LineChart extends AbstractChart {
       const d =
         this.getBezierLinePoints(dataset, config) +
         ` L${paddingLeft + horizontalLabelWidth +
-          gapWidth * (dataset.data.length - 1)}
+        gapWidth * (dataset.data.length - 1)}
           ,${innerHeight + gutterTop + paddingTop} L${paddingLeft + horizontalLabelWidth},
           ${innerHeight + gutterTop + paddingTop} Z`;
       return (
         <Path
           key={index}
           d={d}
-          fill={`url(#fillShadowGradient${
-            useColorFromDataset ? `_${index}` : ""
-          })`}
+          fill={`url(#fillShadowGradient${useColorFromDataset ? `_${index}` : ""
+            })`}
           strokeWidth={0}
         />
       );
@@ -516,6 +517,7 @@ class LineChart extends AbstractChart {
       withScrollableDot = false,
       withShadow = true,
       withDots = true,
+      withDotContents = true,
       withInnerLines = true,
       withVerticalLines = true,
       withOuterLines = true,
@@ -593,7 +595,7 @@ class LineChart extends AbstractChart {
             this.props.data.legend &&
             this.renderLegend(config.width, legendOffset)
           }
-            <G x="0" y={legendOffset}>
+          <G x="0" y={legendOffset}>
             {this.renderDefs({
               ...config,
               ...chartConfig,
@@ -602,37 +604,37 @@ class LineChart extends AbstractChart {
             <G>
               {withInnerLines
                 ? this.renderHorizontalLines({
-                    ...config,
-                    count: count,
-                  })
+                  ...config,
+                  count: count,
+                })
                 : null}
             </G>
             <G>
               {withHorizontalLabels
                 ? this.renderHorizontalLabels({
-                    ...config,
-                    count: count,
-                    data: datas,
-                    formatYLabel,
-                    decimalPlaces: chartConfig.decimalPlaces
-                  })
+                  ...config,
+                  count: count,
+                  data: datas,
+                  formatYLabel,
+                  decimalPlaces: chartConfig.decimalPlaces
+                })
                 : null}
             </G>
             <G>
               {withInnerLines && withVerticalLines
                 ? this.renderVerticalLines({
-                    ...config,
-                    data: data.datasets[0].data,
-                  })
+                  ...config,
+                  data: data.datasets[0].data,
+                })
                 : null}
             </G>
             <G>
               {withVerticalLabels
                 ? this.renderVerticalLabels({
-                    ...config,
-                    labels,
-                    formatXLabel
-                  })
+                  ...config,
+                  labels,
+                  formatXLabel
+                })
                 : null}
             </G>
             <G>
@@ -651,7 +653,7 @@ class LineChart extends AbstractChart {
                 })}
             </G>
             <G>
-              {withDots &&
+              {(withDots || withDotContents) &&
                 this.renderDots({
                   ...config,
                   data: data.datasets,
@@ -679,23 +681,23 @@ class LineChart extends AbstractChart {
         </Svg>
         {
           withScrollableDot && (
-          <ScrollView
-            style={StyleSheet.absoluteFill}
-            contentContainerStyle={{ width: width * 2 }}
-            showsHorizontalScrollIndicator={false}
-            scrollEventThrottle={16}
-            onScroll={Animated.event([
-              {
-                nativeEvent: {
-                  contentOffset: { x: scrollableDotHorizontalOffset }
+            <ScrollView
+              style={StyleSheet.absoluteFill}
+              contentContainerStyle={{ width: width * 2 }}
+              showsHorizontalScrollIndicator={false}
+              scrollEventThrottle={16}
+              onScroll={Animated.event([
+                {
+                  nativeEvent: {
+                    contentOffset: { x: scrollableDotHorizontalOffset }
+                  }
                 }
-              }
-            ],
-            { useNativeDriver: false })}
-            horizontal
-            bounces={false}
-          />
-        )
+              ],
+                { useNativeDriver: false })}
+              horizontal
+              bounces={false}
+            />
+          )
         }
       </View>
     );
