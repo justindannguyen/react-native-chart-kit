@@ -101,7 +101,7 @@ class LineChart extends AbstractChart {
 
       dataset.data.forEach((x, i) => {
         const lineHeight = this.calcHeight(x, datas, innerHeight);
-        const gapWidth = innerWidth / (dataset.data.length - 1);
+        const gapWidth = innerWidth / ((dataset.data.length - 1) || 1);
         const cx = i * gapWidth + horizontalLabelWidth + paddingLeft;
         const cy = baseHeight - lineHeight + gutterTop + paddingTop;
         if (withDots) {
@@ -337,7 +337,7 @@ class LineChart extends AbstractChart {
     const { datas, innerHeight, innerWidth, baseHeight } = this.linePositionHelper(config);
 
     return config.data.map((dataset, index) => {
-      const gapWidth = innerWidth / (dataset.data.length - 1);
+      const gapWidth = innerWidth / ((dataset.data.length - 1) || 1);
       const haftGapWidth = 0
       return (
         <Polygon
@@ -384,7 +384,7 @@ class LineChart extends AbstractChart {
     const { datas, innerHeight, innerWidth, baseHeight } = this.linePositionHelper(config);
     let lastPoint;
     data.forEach((dataset, index) => {
-      const gapWidth = innerWidth / (dataset.data.length - 1);
+      const gapWidth = innerWidth / ((dataset.data.length - 1) || 1);
       const haftGapWidth = 0
       const points = dataset.data.map((d, i) => {
         const lineHeight = this.calcHeight(d, datas, innerHeight);

@@ -166,7 +166,7 @@ class AbstractChart extends Component {
       fac = 0.71;
     }
 
-    const labelWidth = (width - horizontalLabelWidth - paddingRight - paddingLeft) / (labels.length - 1);
+    const labelWidth = (width - horizontalLabelWidth - paddingRight - paddingLeft) / ((labels.length - 1) || 1);
 
     const y = height - paddingBottom - verticalLabelHeight + xLabelsOffset + fontSize*1.5;
 
